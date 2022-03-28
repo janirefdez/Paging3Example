@@ -3,6 +3,7 @@ package com.janirefernandez.paging3example.ui.view
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -22,6 +23,7 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var repoAdapter: RepoAdapter
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,6 +31,17 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setRecyclerView()
+        binding.searchRepo.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                binding.searchRepo.text.trim().let {
+                    if (it.isNotEmpty()) {
+                        binding.recyclerView.scrollToPosition(0)
+                        search(query = it.toString())
+                    }
+                }
+            }
+            true
+        }
     }
 
     private fun setRecyclerView() {
@@ -37,7 +50,7 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.addItemDecoration(decoration)
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
 
-        val repoAdapter = RepoAdapter {
+        repoAdapter = RepoAdapter {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it.url))
             startActivity(intent)
         }
@@ -45,11 +58,7 @@ class MainActivity : AppCompatActivity() {
             repoAdapter.retry()
         })
 
-        lifecycleScope.launch {
-            viewModel.getPagingData().collect {
-                repoAdapter.submitData(it)
-            }
-        }
+        search(binding.searchRepo.text.toString())
 
         lifecycleScope.launch {
             repoAdapter.loadStateFlow.collect { loadState ->
@@ -72,6 +81,15 @@ class MainActivity : AppCompatActivity() {
                         Toast.LENGTH_LONG
                     ).show()
                 }
+            }
+        }
+    }
+
+
+    private fun search(query: String) {
+        lifecycleScope.launch {
+            viewModel.getPagingData(query).collect {
+                repoAdapter.submitData(it)
             }
         }
     }

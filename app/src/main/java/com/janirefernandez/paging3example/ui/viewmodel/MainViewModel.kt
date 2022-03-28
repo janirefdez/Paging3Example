@@ -15,7 +15,7 @@ class MainViewModel @Inject constructor(
     private val getGithubRepositoriesUseCase: GetGithubRepositoriesUseCase
 ) : ViewModel() {
 
-    fun getPagingData(): Flow<PagingData<Repo>> {
-        return getGithubRepositoriesUseCase("Android").cachedIn(viewModelScope)
+    fun getPagingData(query: String): Flow<PagingData<Repo>> {
+        return getGithubRepositoriesUseCase(query).cachedIn(viewModelScope)
     }
 }
