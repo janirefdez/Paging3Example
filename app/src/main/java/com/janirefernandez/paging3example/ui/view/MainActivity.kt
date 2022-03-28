@@ -54,21 +54,28 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it.url))
             startActivity(intent)
         }
-        binding.recyclerView.adapter = repoAdapter.withLoadStateFooter(FooterAdapter {
-            repoAdapter.retry()
-        })
 
+        val footerAdapter = FooterAdapter { repoAdapter.retry() }
+        binding.recyclerView.adapter = repoAdapter.withLoadStateFooter(footerAdapter)
+        binding.retryButton.setOnClickListener { repoAdapter.retry() }
         search(binding.searchRepo.text.toString())
 
         lifecycleScope.launch {
             repoAdapter.loadStateFlow.collect { loadState ->
+                // Show a retry header if there was an error refreshing, and items were previously
+                // cached OR default to the default prepend state
+                footerAdapter.loadState = loadState.mediator
+                    ?.refresh
+                    ?.takeIf { it is LoadState.Error && repoAdapter.itemCount > 0 }
+                    ?: loadState.prepend
+
                 val isListEmpty =
                     loadState.refresh is LoadState.NotLoading && repoAdapter.itemCount == 0
 
                 binding.emptyList.isVisible = isListEmpty
-                binding.recyclerView.isVisible = !isListEmpty
-                binding.progressBar.isVisible = loadState.source.refresh is LoadState.Loading
-                binding.retryButton.isVisible = loadState.source.refresh is LoadState.Error
+                binding.recyclerView.isVisible = loadState.source.refresh is LoadState.NotLoading || loadState.mediator?.refresh is LoadState.NotLoading
+                binding.progressBar.isVisible = loadState.mediator?.refresh is LoadState.Loading
+                binding.retryButton.isVisible = loadState.mediator?.refresh is LoadState.Error && repoAdapter.itemCount == 0
 
                 val errorState = loadState.source.append as? LoadState.Error
                     ?: loadState.source.prepend as? LoadState.Error
@@ -82,6 +89,7 @@ class MainActivity : AppCompatActivity() {
                     ).show()
                 }
             }
+
         }
     }
 
