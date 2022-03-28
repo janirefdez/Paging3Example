@@ -1,9 +1,12 @@
 package com.janirefernandez.paging3example.data.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 
+@Entity(tableName = "repos")
 data class Repo(
-    @SerializedName("id") val id: Long,
+    @PrimaryKey  @SerializedName("id") val id: Long,
     @SerializedName("name") val name: String,
     @SerializedName("full_name") val fullName: String,
     @SerializedName("description") val description: String?,

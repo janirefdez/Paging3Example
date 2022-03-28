@@ -55,10 +55,14 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0'
     // Paging 3
     implementation 'androidx.paging:paging-common-ktx:3.1.1'
+    implementation 'androidx.paging:paging-runtime-ktx:3.1.1'
     // Dagger hilt
     implementation 'com.google.dagger:hilt-android:2.41'
-    implementation 'androidx.paging:paging-runtime-ktx:3.1.1'
     kapt 'com.google.dagger:hilt-android-compiler:2.41'
+    // Room
+    implementation 'androidx.room:room-ktx:2.4.2'
+    implementation 'androidx.room:room-paging:2.4.2'
+    kapt "androidx.room:room-compiler:2.4.2"
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
